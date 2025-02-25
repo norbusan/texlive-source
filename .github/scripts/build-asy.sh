@@ -53,6 +53,8 @@ case $buildsys in
 esac
 export PACKAGES
 
+export TL_MAKE=make
+
 . .github/scripts/setup.sh
 
 # Actual build job
