@@ -53,7 +53,7 @@ case $buildsys in
 esac
 export PACKAGES
 
-source .github/scripts/setup.sh
+. .github/scripts/setup.sh
 
 # Actual build job
 
