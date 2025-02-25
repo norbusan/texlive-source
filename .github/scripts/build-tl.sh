@@ -118,7 +118,7 @@ case "$arch" in
     ;;
   *-freebsd)
     export TL_MAKE=gmake
-    export CC=gcc 
+    export CC=gcc
     export CXX=g++
     export CFLAGS=-D_NETBSD_SOURCE
     export CXXFLAGS='-D_NETBSD_SOURCE -std=c++17'

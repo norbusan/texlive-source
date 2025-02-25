@@ -21,52 +21,41 @@ if [ "$1" = "no-prepare" ]
 then
   do_prepare=0
 fi
+export do_prepare
 
-if [ $do_prepare = 1 ]
-then
-  case $buildsys in 
-     ubuntu|debian)
-       export DEBIAN_FRONTEND=noninteractive
-       export LANG=C.UTF-8
-       export LC_ALL=C.UTF-8
-       apt-get update -q -y
-       apt-get install -y --no-install-recommends bash gcc g++ make perl libfontconfig-dev libx11-dev libxmu-dev libxaw7-dev build-essential libtool-bin
-       apt-get install -y --no-install-recommends build-essential pkg-config libeigen3-dev libcurl4-openssl-dev libreadline-dev libboost-filesystem-dev flex libglu1-mesa-dev freeglut3-dev libosmesa6-dev libreadline6-dev zlib1g-dev bison libglm-dev libncurses-dev python3 libtirpc-dev
-       ;;
-     freebsd)
-       env ASSUME_ALWAYS_YES=YES pkg install -y gmake gcc pkgconf libX11 libXt libXaw fontconfig perl5 eigen readline flex libGLU freeglut libosmesa zlib-ng bison glm ncurses python python3 libtool
-       ;;
-     *)
-       echo "Unsupported build system: $buildsys" >&2
-       exit 1
-       ;;
-  esac
-fi
 
-# special cases
-export TL_MAKE=make
-case "$arch" in
-  *-solaris)
-    export PATH=/opt/csw/bin:$PATH
-    export TL_MAKE=gmake
-    if [ $arch = "i386-solaris" ]
-    then
-      export CC="gcc -m32"
-      export CXX="g++ -m32"
-    else
-      export CC="gcc -m64"
-      export CXX="g++ -m64"
-    fi
+case $buildsys in 
+  ubuntu|debian)
+    PACKAGES="bash gcc g++ make perl libfontconfig-dev libx11-dev libxmu-dev libxaw7-dev build-essential libtool-bin build-essential pkg-config libeigen3-dev libcurl4-openssl-dev libreadline-dev libboost-filesystem-dev flex libglu1-mesa-dev freeglut3-dev libosmesa6-dev libreadline6-dev zlib1g-dev bison libglm-dev libncurses-dev python3 libtirpc-dev"
     ;;
-  *-freebsd)
-    export TL_MAKE=gmake
-    export CC=gcc
-    export CXX=g++
-    export CFLAGS=-D_NETBSD_SOURCE
-    export CXXFLAGS=-D_NETBSD_SOURCE
+  almalinux)
+    PACKAGES="gcc-toolset-11 fontconfig-devel libX11-devel libXmu-devel libXaw-devel"
+    ;;
+  centos)
+    PACKAGES="devtoolset-9 fontconfig-devel libX11-devel libXmu-devel libXaw-devel"
+    ;;
+  alpine)
+    PACKAGES="bash gcc g++ make perl fontconfig-dev libx11-dev libxmu-dev libxaw-dev"
+    ;;
+  freebsd)
+    PACKAGES="gmake gcc pkgconf libX11 libXt libXaw fontconfig perl5 eigen readline flex libGLU freeglut libosmesa zlib-ng bison glm ncurses python python3 libtool"
+    ;;
+  netbsd)
+    PACKAGES="gmake gcc pkgconf libX11 libXt libXaw fontconfig perl5"
+    ;;
+  solaris)
+    PACKAGES="autoconf automake gcc5core libtool gmake gcc pkgconf libX11 libXt libXaw fontconfig perl5 eigen readline flex libGLU freeglut libosmesa zlib-ng bison glm ncurses python python3"
+    ;;
+  *)
+    echo "Unsupported build system: $buildsys" >&2
+    exit 1
     ;;
 esac
+export PACKAGES
 
+source .github/scripts/setup.sh
+
+# Actual build job
 
 find . -name \*.info -exec touch '{}' \;
 touch ./utils/asymptote/camp.tab.cc
@@ -77,7 +66,7 @@ cd utils/asymptote
 ./configure --prefix=/tmp/asyinst --enable-static --enable-texlive-build \
 	--disable-gsl --disable-fftw --disable-lsp --disable-curl
 	LDFLAGS="-static-libgcc -static-libstdc++"
-$TL_MAKE SIlENT_MAKE= -j2
+$TL_MAKE SILENT_MAKE= -j2
 
 strip asy
 

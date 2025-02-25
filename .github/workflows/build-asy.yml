@@ -46,7 +46,7 @@ jobs:
       matrix:
         # we need to list the archs here, otherwise the matrix contains only
         # one element release_build and that is overwritten by the include statements
-        tl_name: [ i386-linux, x86_64-linux ]
+        tl_name: [ i386-linux, x86_64-linux, x86_64-linuxmusl, aarch64-linux, armhf-linux ]
         release_build:
           - ${{ startsWith(github.ref, 'refs/tags/') }}
         include:
@@ -55,13 +55,33 @@ jobs:
             platform: 386
             ci_build: true
             use_qemu: false
-            buildsys: ubuntu
+            buildsys: debian
           - tl_name: x86_64-linux
-            image: debian:buster
+            image: almalinux:8
             platform: amd64
             ci_build: true
             use_qemu: false
-            buildsys: ubuntu
+            buildsys: almalinux
+          - tl_name: x86_64-linuxmusl
+            image: alpine:3.12
+            platform: amd64
+            ci_build: true
+            use_qemu: false
+            buildsys: alpine
+          - tl_name: aarch64-linux
+            image: arm64v8/debian:buster
+            platform: aarch64
+            ci_build: false
+            use_qemu: true
+            qemu_arch: aarch64
+            buildsys: debian
+          - tl_name: armhf-linux
+            image: arm32v7/debian:buster
+            platform: arm/v7
+            ci_build: false
+            use_qemu: true
+            qemu_arch: arm
+            buildsys: debian
 
     steps:
       - name: checkout-main
@@ -108,11 +128,13 @@ jobs:
       fail-fast: false
       matrix: 
         arch: [ i386, amd64 ]
-        os: [ freebsd ]
+        os: [ freebsd, solaris ]
         release_build: 
           - ${{ startsWith(github.ref, 'refs/tags/') }}
         include:
           - os: freebsd
+            ci_build: true
+          - os: solaris
             ci_build: true
 
     steps:
